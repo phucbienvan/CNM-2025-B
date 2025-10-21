@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Task\CreateRequest;
+use App\Http\Requests\Task\DeleteRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use Illuminate\Http\Request;
@@ -27,5 +28,14 @@ class TaskController extends Controller
         $tasks = Task::orderByDesc('id');
 
         return TaskResource::apiPaginate($tasks, $request);
+    }
+
+    public function destroy(DeleteRequest $request)
+    {
+        Task::destroy($request->validated('id'));
+        
+        return response()->json([
+            'message' => 'Task deleted successfully'
+        ], 200);
     }
 }

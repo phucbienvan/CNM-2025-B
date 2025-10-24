@@ -28,4 +28,19 @@ class TaskController extends Controller
 
         return TaskResource::apiPaginate($tasks, $request);
     }
+    public function destroy($id)
+    {
+        try {
+            $task = Task::findOrFail($id);
+            $task->delete();
+
+            return response()->json([
+                'message' => 'Task deleted successfully'
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Task not found'
+            ], 404);
+        }
+    }
 }

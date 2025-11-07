@@ -50,6 +50,15 @@ class AuthController extends Controller
         ], 200);
     }
 
+    public function logout()
+    {
+        auth()->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logout successful',
+        ]);
+    }
+
     public function getProfile()
     {
         return new UserResource(auth()->user());

@@ -25,11 +25,10 @@ Route::post('login', [AuthController::class, 'login']);
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('user', [AuthController::class, 'getProfile']);
 });
-
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
+Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
 Route::group(['prefix' => 'tasks'], function () {
     Route::post('', [TaskController::class, 'store']);
     Route::get('', [TaskController::class, 'index']);

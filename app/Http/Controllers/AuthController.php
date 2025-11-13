@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -53,5 +54,18 @@ class AuthController extends Controller
     public function getProfile()
     {
         return new UserResource(auth()->user());
+    }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user && $user->currentAccessToken()) {
+            $user->currentAccessToken()->delete();
+        }
+
+        return response()->json([
+            'message' => 'Logout successful'
+        ], 200);
     }
 }

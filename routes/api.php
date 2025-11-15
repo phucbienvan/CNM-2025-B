@@ -22,6 +22,7 @@ use function Symfony\Component\String\b;
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('verify-email', [AuthController::class, 'verifyEmail']);
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('user', [AuthController::class, 'getProfile']);

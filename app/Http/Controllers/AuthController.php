@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\VerifyCodeRequest;
+use App\Http\Requests\Auth\ResendVerifyEmailRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\SendCodeVerifyEmail;
 use App\Models\User;
@@ -65,6 +66,7 @@ class AuthController extends Controller
         ], 200);
     }
 
+
     public function login(LoginRequest $request)
     {
         $userInput = $request->validated();
@@ -99,6 +101,35 @@ class AuthController extends Controller
         ], 200);
     }
 
+
+    public function resendVerificationEmail(ResendVerifyEmailRequest $request)
+    {
+
+        $userInput = $request->validated();
+        $user = User::where('email', $userInput['email'])->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        if ($user->is_verified) {
+            return response()->json([
+                'message' => 'Email is already verified',
+            ], 400);
+        }
+
+        $user->code = Str::random(6);
+        $user->code_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        Mail::to($user->email)->send(new SendCodeVerifyEmail($user->code));
+
+        return response()->json([
+            'message' => 'Verification email resent successfully',
+        ], 200); 
+    }
     public function getProfile()
     {
         return new UserResource(auth()->user());

@@ -16,13 +16,4 @@ class ResendCodeRequest extends BaseRequest
             'email' => 'required|email|exists:users,email',
         ];
     }
-
-    public function messages()
-    {
-        return [
-            'email.required' => 'Email is required',
-            'email.email' => 'Email format is invalid',
-            'email.exists' => 'Email does not exist',
-        ];
-    }
 }

@@ -5,13 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\VerifyCodeRequest;
+use App\Http\Requests\ResendCodeRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\SendCodeVerifyEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Str;
+use Illuminate\Support\Str;
+
 
 class AuthController extends Controller
 {
@@ -35,7 +37,7 @@ class AuthController extends Controller
     {
         $userInput = $request->validated();
         $user = User::where('email', $userInput['email'])->first();
-        
+
         if (!$user) {
             return response()->json([
                 'message' => 'User not found',
@@ -53,7 +55,7 @@ class AuthController extends Controller
                 'message' => 'Code expired',
             ], 400);
         }
-        
+
         $user->is_verified = true;
         $user->code = null;
         $user->code_expires_at = null;
@@ -104,6 +106,27 @@ class AuthController extends Controller
         return new UserResource(auth()->user());
     }
 
+    public function resendEmail(ResendCodeRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
+
+        if ($user->is_verified) {
+            return response()->json([
+                'message' => 'Email is already verified',
+            ], 400);
+        }
+
+        $user->code = Str::random(6);
+        $user->code_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        Mail::to($user->email)->send(new SendCodeVerifyEmail($user->code));
+
+        return response()->json([
+            'message' => 'Verification code resent successfully',
+        ], 200);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -113,3 +136,4 @@ class AuthController extends Controller
         ], 200);
     }
 }
+

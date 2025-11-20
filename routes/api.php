@@ -23,6 +23,7 @@ use function Symfony\Component\String\b;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('verify-email', [AuthController::class, 'verifyEmail']);
+Route::post('resend-email', [AuthController::class, 'resendEmail']);
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('user', [AuthController::class, 'getProfile']);
@@ -40,3 +41,4 @@ Route::group(['prefix' => 'tasks'], function () {
     Route::get('{task}', [TaskController::class, 'show']);
     Route::put('{task}', [TaskController::class, 'update']);
 });
+

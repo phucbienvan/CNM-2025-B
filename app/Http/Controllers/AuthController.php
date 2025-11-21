@@ -11,7 +11,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Str;
+use Illuminate\Support\Str;
+use App\Http\Requests\Auth\ResendVerifyEmailRequest;
+
 
 class AuthController extends Controller
 {
@@ -111,5 +113,28 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logout successful',
         ], 200);
+    }
+
+    public function resendVerificationEmail(ResendVerifyEmailRequest $request)
+    {
+
+        $userInput = $request->validated();
+        $user = User::where('email', $userInput['email'])->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        if ($user->is_verified) {
+            return response()->json(['message' => 'User is already verified'], 400);
+        }
+
+        $user->code = Str::random(6);
+        $user->code_expires_at = now()->addMinutes(10);
+        $user->save();
+
+        Mail::to($user->email)->send(new SendCodeVerifyEmail($user->code));
+
+        return response()->json(['message' => 'Verification email resent successfully'], 200); 
     }
 }

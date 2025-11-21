@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResendVerifyEmailRequest;
 use App\Http\Requests\Auth\VerifyCodeRequest;
 use App\Http\Resources\UserResource;
 use App\Mail\SendCodeVerifyEmail;
@@ -35,7 +36,7 @@ class AuthController extends Controller
     {
         $userInput = $request->validated();
         $user = User::where('email', $userInput['email'])->first();
-        
+
         if (!$user) {
             return response()->json([
                 'message' => 'User not found',
@@ -53,7 +54,7 @@ class AuthController extends Controller
                 'message' => 'Code expired',
             ], 400);
         }
-        
+
         $user->is_verified = true;
         $user->code = null;
         $user->code_expires_at = null;
@@ -62,6 +63,34 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Email verified successfully',
             'user' => new UserResource($user)
+        ], 200);
+    }
+
+    public function resendVerificationEmail(ResendVerifyEmailRequest $request)
+    {
+        $userInput = $request->validated();
+        $user = User::where('email', $userInput['email'])->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found'
+            ], 400);
+        }
+
+        if ($user->is_verified) {
+            return response()->json([
+                'message' => 'Email already verified'
+            ], 400);
+        }
+
+        $user->code = Str::random(6);
+        $user->code_expires_at = now()->addMinute(10);
+        $user->save();
+
+        Mail::to($user->email)->send(new SendCodeVerifyEmail($user->code));
+
+        return response()->json([
+            'message' => 'Verification code resent successfully',
         ], 200);
     }
 

@@ -6,55 +6,68 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Tag;
 
-
 Class ProductService
 {
-    protected $Product , $Category , $Tag ;
-    public function __construct(Product $Product ,Category $Category , Tag $Tag){
-        $this->Product = $Product;
-        $this->Category = $Category;
-        $this->Tag=$Tag;
+    protected $product , $category , $tag ;
+
+    public function __construct(
+        Product $product ,
+        Category $category ,
+        Tag $tag
+    ) {
+        $this->product = $product;
+        $this->category = $category;
+        $this->tag=$tag;
     }
 
-    public function createproduct( $param ){
+    public function createProduct($params){
         $product = array(
-            'title'=> $param["title"],
-            'price' => isset($param["price"])? $param["price"]:null,
+            'title' => $params['title'],
+            'price' => isset($params['price']) ? $params['price'] : null,
         );
 
-        if($param["description"]){
-        $product["description"] = $param["description"];
+        if ($params['description']) {
+            $product['description'] = $params['description'];
         }
 
-        $this->Product->create($product); return true;
+        $this->product->create($product);
+        
+        return true;
     }
 
-    public function FIND($id){
-        $Product = $this->Product->find($id); if(!$Product) return null;
-        if($Product->status == 'active'){
-            return $Product;
-        }else{
-            return FALSE;
+    public function find($id){
+        $product = $this->product->find($id);
+        
+        if (!$product) {
+            return null;
+        } 
+
+        if ($product->status == 'active') {
+            return $product;
+        } else {
+            return false;
         }
     }
 
     public function getByCategory($category){
-        if(gettype($category) == "string"){
-            $category = $this->Category->where("name",$category)->first();
+        if (gettype($category) == 'string') {
+            $category = $this->category->where('name', $category)->first();
         }
 
-        $Products = $this->Product->where('category_id',$category->id)->with("tags") ->orderBy( 'created_at','desc')->paginate();
-        return $Products ;
+        return $this->product
+            ->where('category_id', $category->id)
+            ->with('tags')
+            ->orderBy( 'created_at', 'desc')
+            ->paginate();
     }
 
     public function update($product, $data){
-        if(is_array($product)){
-            $product = $this->Product->find($product["id"]);
+        if (is_array($product)) {
+            $product = $this->product->find($product['id']);
         }
 
-        foreach($data as $Key=>$Val)
-        {
-            $product->$Key=$Val ;
+        foreach($data as $key=>$val) {
+            $product->$key=$val ;
         }
 
         return $product->save();
